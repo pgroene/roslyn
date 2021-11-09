@@ -15,30 +15,52 @@ pr:
 - demos/*
 
 jobs:
-- job: VS_Integration
+- job: VS_Integration_Debug_32
   pool:
     name: $(poolName)
     demands: ImageOverride -equals $(queueName)
-  strategy:
-    maxParallel: 4
-    matrix:
-      debug_32:
-        _configuration: Debug
-        _oop64bit: false
-      debug_64:
-        _configuration: Debug
-        _oop64bit: true
-      release_32:
-        _configuration: Release
-        _oop64bit: false
-      release_64:
-        _configuration: Release
-        _oop64bit: true
   timeoutInMinutes: 135
-
+  condition: ne(variables['Build.Reason'], 'PullRequest')
   steps:
     - template: eng/pipelines/test-integration-job.yml
       parameters:
-        configuration: $(_configuration)
-        oop64bit: $(_oop64bit)
+        configuration: 'Debug'
+        oop64bit: false
+        lspEditor: false
+
+- job: VS_Integration_Debug_64
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: 'Debug'
+        oop64bit: true
+        lspEditor: false
+
+- job: VS_Integration_Release_32
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: 'Release'
+        oop64bit: false
+        lspEditor: false
+
+- job: VS_Integration_Release_64
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  condition: ne(variables['Build.Reason'], 'PullRequest')
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: 'Release'
+        oop64bit: true
         lspEditor: false
