@@ -22,12 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     public class IntentTestsBase
     {
-        internal static Task VerifyExpectedTextAsync(string intentName, string markup, string expectedText, OptionsCollection? options = null)
+        internal static Task VerifyExpectedTextAsync(string intentName, string markup, string expectedText, OptionsCollection? options = null, string? data = null)
         {
-            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, expectedText, options);
+            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, expectedText, options, data);
         }
 
-        internal static async Task VerifyExpectedTextAsync(string intentName, string activeDocument, string[] additionalDocuments, string expectedText, OptionsCollection? options = null)
+        internal static async Task VerifyExpectedTextAsync(string intentName, string activeDocument, string[] additionalDocuments, string expectedText, OptionsCollection? options = null, string? data = null)
+        {
+            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, expectedText, options, data);
+        }
+
+        internal static async Task VerifyExpectedTextAsync(string intentName, string activeDocument, string[] additionalDocuments, string expectedText, OptionsCollection? options = null, string? data = null)
         {
             var documentSet = additionalDocuments.Prepend(activeDocument).ToArray();
             using var workspace = TestWorkspace.CreateCSharp(documentSet, exportProvider: EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider());
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 currentSnapshotSpan,
                 ImmutableArray.Create(rewindTextChange),
                 priorSelection,
-                intentData: null);
+                intentData: data);
             var results = await intentSource.ComputeIntentsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
 
             // For now, we're just taking the first result to match intellicode behavior.
