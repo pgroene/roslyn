@@ -137,5 +137,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                     { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement }
                 }).ConfigureAwait(false);
         }
+        
+        [Fact]
+        public async Task GenerateConstructorWithIntenalAccessor()
+        {
+            var initialText =
+@"class C
+{
+    private readonly int _someInt;
+
+    {|typed:internal C|}
+}";
+            var expectedText =
+@"class C
+{
+    private readonly int _someInt;
+
+    internal C(object someObject)
+    {
+        _someObject = someObject;
+    }
+}";
+
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText,
+                data: "{ \"accessiblity\" : \"internal\"}").ConfigureAwait(false);
+        }
     }
 }
