@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
-        private static readonly Dictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
-        private static readonly Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> s_sharedEmptyCaseInsensitiveForwardedTypes = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>();
+        private static readonly ConcurrentDictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new ConcurrentDictionary<string, (int FirstIndex, int SecondIndex)>();
+        private static readonly ConcurrentDictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> s_sharedEmptyCaseInsensitiveForwardedTypes = new ConcurrentDictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>();
 
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis
         /// keep a second one as well to use it for error reporting.
         /// We use -1 in case there was no forward.
         /// </summary>
-        private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
+        private ConcurrentDictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
 
         /// <summary>
         /// Case-insensitive version of <see cref="_lazyForwardedTypesToAssemblyIndexMap"/>, only populated if case-insensitive search is
         /// requested. We only keep the first instance of a type name, regardless of case, as this is only used for error recovery purposes
         /// in VB.
         /// </summary>
-        private Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
+        private ConcurrentDictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -3776,7 +3776,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                var caseInsensitiveMap = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
+                var caseInsensitiveMap = new ConcurrentDictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var (key, (firstIndex, secondIndex)) in _lazyForwardedTypesToAssemblyIndexMap)
                 {
@@ -3799,7 +3799,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyForwardedTypesToAssemblyIndexMap == null)
             {
-                Dictionary<string, (int FirstIndex, int SecondIndex)>? typesToAssemblyIndexMap = null;
+                ConcurrentDictionary<string, (int FirstIndex, int SecondIndex)>? typesToAssemblyIndexMap = null;
 
                 try
                 {
@@ -3844,7 +3844,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        typesToAssemblyIndexMap ??= new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+                        typesToAssemblyIndexMap ??= new ConcurrentDictionary<string, (int FirstIndex, int SecondIndex)>();
 
                         (int FirstIndex, int SecondIndex) indices;
 
